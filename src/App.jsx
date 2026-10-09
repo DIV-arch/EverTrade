@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from './lib/supabase';
 import {
   Sparkles,
   Download,
@@ -68,6 +69,53 @@ export default function App() {
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [featureModalOpen, setFeatureModalOpen] = useState(null);
   const [activePill, setActivePill] = useState('Market Halt Detection');
+  const [betaModalOpen, setBetaModalOpen] = useState(false);
+const [betaName, setBetaName] = useState('');
+const [betaEmail, setBetaEmail] = useState('');
+const [betaLoading, setBetaLoading] = useState(false);
+const [betaMessage, setBetaMessage] = useState('');
+const [betaError, setBetaError] = useState(false);
+
+const handleBetaSignup = async (e) => {
+  e.preventDefault();
+
+  const name = betaName.trim();
+  const email = betaEmail.trim().toLowerCase();
+
+  if (!name || !email) {
+    setBetaError(true);
+    setBetaMessage('Please enter your name and email.');
+    return;
+  }
+
+  setBetaLoading(true);
+  setBetaMessage('');
+  setBetaError(false);
+
+  try {
+    const { error } = await supabase
+      .from('beta_signups')
+      .insert([{ name, email }]);
+
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error('This email is already registered.');
+      }
+      throw error;
+    }
+
+    setBetaMessage("You're on the list! Thanks for your interest.");
+    setBetaName('');
+    setBetaEmail('');
+  } catch (error) {
+    setBetaError(true);
+    setBetaMessage(
+      error.message || 'Registration failed. Please try again.'
+    );
+  } finally {
+    setBetaLoading(false);
+  }
+};
 
   const features = {
     halt: {
@@ -173,6 +221,16 @@ export default function App() {
                 </div>
               </button>
             </div>
+            <button
+  onClick={() => {
+    setBetaMessage('');
+    setBetaError(false);
+    setBetaModalOpen(true);
+  }}
+  className="liquid-glass rounded-full px-6 py-3 mt-4 text-sm text-white hover:scale-105 transition-transform"
+>
+  Join the Beta
+</button>
 
             {/* Three Pills */}
             <div className="flex flex-wrap items-center justify-center gap-2.5 mt-8 max-w-lg">
@@ -387,6 +445,82 @@ export default function App() {
 
       </div>
 
+      {betaModalOpen && (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+    <div className="liquid-glass-strong rounded-3xl w-full max-w-md p-6 sm:p-8 flex flex-col gap-5 shadow-2xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-white/50">
+            Early Access
+          </p>
+          <h2 className="text-2xl text-white font-medium mt-2">
+            Join the EverTrade Beta
+          </h2>
+        </div>
+        <button
+          type="button"
+          onClick={() => setBetaModalOpen(false)}
+          className="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-white"
+          aria-label="Close signup form"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <p className="text-sm text-white/70">
+        Register your interest to receive updates about EverTrade beta access.
+      </p>
+
+      <form onSubmit={handleBetaSignup} className="flex flex-col gap-4">
+        <input
+          type="text"
+          placeholder="Your name"
+          value={betaName}
+          onChange={(e) => setBetaName(e.target.value)}
+          required
+          maxLength={100}
+          autoComplete="name"
+          className="w-full rounded-xl bg-black/30 border border-white/20 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:border-white/60"
+        />
+
+        <input
+          type="email"
+          placeholder="Your email address"
+          value={betaEmail}
+          onChange={(e) => setBetaEmail(e.target.value)}
+          required
+          maxLength={254}
+          autoComplete="email"
+          className="w-full rounded-xl bg-black/30 border border-white/20 px-4 py-3 text-white placeholder:text-white/40 outline-none focus:border-white/60"
+        />
+
+        <button
+          type="submit"
+          disabled={betaLoading}
+          className="liquid-glass rounded-full py-3 text-sm text-white font-medium disabled:opacity-50"
+        >
+          {betaLoading ? 'Registering...' : 'Register for Beta Updates'}
+        </button>
+      </form>
+
+      {betaMessage && (
+        <p
+          role="status"
+          aria-live="polite"
+          className={`text-sm ${
+            betaError ? 'text-red-300' : 'text-green-300'
+          }`}
+        >
+          {betaMessage}
+        </p>
+      )}
+
+      <p className="text-xs text-white/40">
+        Your email will be used for beta-related updates.
+      </p>
+    </div>
+  </div>
+)}
       {/* =========================================================================
           INTERACTIVE MODAL: MENU DRAWER
          ========================================================================= */}
