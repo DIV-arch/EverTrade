@@ -1,0 +1,29 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'],
+        display: ['Poppins', 'sans-serif'],
+        serif: ['"Source Serif 4"', 'serif'],
+      },
+      borderRadius: {
+        DEFAULT: 'var(--radius, 1rem)',
+      },
+      colors: {
+        // Pure grayscale HSL mappings
+        border: 'hsl(var(--border))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+      },
+      letterSpacing: {
+        tighter: '-0.05em',
+      }
+    },
+  },
+  plugins: [],
+};
